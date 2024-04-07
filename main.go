@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"path/filepath"
+	"sort"
+	"time"
 
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
@@ -16,9 +18,14 @@ const M uint64 = 1 << 31 // Alternative to `uint64(math.Pow(2, 31))`, this allow
 
 const Seed uint64 = 42
 
-const N = 1_000_000
+const X0 = 0.0
+const Gamma = 1.0
+
+const N = 10_000_000
 
 func main() {
+	fmt.Printf("Generating %d numbers\n\n", N)
+
 	generateLgc()
 	generateCauchy()
 	generateCauchyNoTangent()
@@ -26,16 +33,19 @@ func main() {
 
 func generateLgc() {
 
+	start := time.Now()
 	numbers := make([]float64, N)
 	for i := 0; i < N; i++ {
 		numbers[i] = float64(lgcGenerator())
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("Generating numbers using LGC took %s\n", elapsed)
 
 	var values plotter.Values
 	values = append(values, numbers...)
 
 	mean, stdDev := calculateLgcStats(numbers)
-	fmt.Printf("Normalized LGC stats:\n\tMean: %f\n\tStandard deviation: %f\n", mean, stdDev)
+	fmt.Printf("LGC stats (normalized):\n\tMean: %f\n\tStandard deviation: %f\n\n", mean, stdDev)
 
 	histPlot(values, "Linear Congruential Generator")
 }
@@ -51,39 +61,35 @@ func lcg(seed uint64) func() uint64 {
 var lgcGenerator = lcg(Seed)
 
 func generateCauchy() {
-	numbers := make([]float64, N)
-	var values plotter.Values
-	for i := 0; i < N; i++ {
-		numbers[i] = math.Tan(getRandomInRange(-0.5, 0.5) * math.Pi)
 
-		// Limiting to values from -4 to 4, otherwise the histogram has too many extremely small and large values and it's impossible to see the distribution.
-		if numbers[i] >= -4.0 && numbers[i] <= 4.0 {
-			values = append(values, numbers[i])
-		}
+	start := time.Now()
+	numbers := make([]float64, N)
+	for i := 0; i < N; i++ {
+		numbers[i] = X0 + Gamma*math.Tan(getRandomInRange(-0.5, 0.5)*math.Pi)
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("Generating Cauchy numbers took %s\n", elapsed)
+
+	q1, median, q3, IQR := calculateCauchyStats(numbers)
+	fmt.Printf("Cauchy stats:\n\t1st quartile: %f\n\tMedian: %f\n\t3rd quartile: %f\n\tInterquartile range: %f\n\n", q1, median, q3, IQR)
+
+	values := getCauchyValuesForHistogram(numbers)
 
 	histPlot(values, "Cauchy Generator")
 }
 
+const TwoOverPi = 2.0 / math.Pi
+
 func generateCauchyNoTangent() {
 
-	const twoOverPi = 2.0 / math.Pi
-
-	fu := func(x float64) float64 {
-		if x >= -1.0 && x <= 1.0 {
-			return twoOverPi * (1.0 / (1.0 + math.Pow(x, 2.0)))
-		}
-
-		return 0.0
-	}
-
+	start := time.Now()
 	numbers := make([]float64, N)
-	var values plotter.Values
+	const twoOverPiMinusHalf = TwoOverPi - 0.5
 	for i := 0; i < N; i++ {
 		x := getRandomInRange(-1, 1)
 		y := getRandomInRange(0, 1)
 
-		if y/2.0 > fu(x)-(twoOverPi-0.5) {
+		if y > 2.0*(fu(x)-twoOverPiMinusHalf) {
 			x = getRandomInRange(-1, 1)
 		}
 
@@ -96,15 +102,54 @@ func generateCauchyNoTangent() {
 			}
 		}
 
-		numbers[i] = x
+		numbers[i] = X0 + Gamma*x
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("Generating Cauchy numbers without using tangent took %s\n", elapsed)
 
+	q1, median, q3, IQR := calculateCauchyStats(numbers)
+	fmt.Printf("Cauchy no tangent stats:\n\t1st quartile: %f\n\tMedian: %f\n\t3rd quartile: %f\n\tInterquartile range: %f\n\n", q1, median, q3, IQR)
+
+	values := getCauchyValuesForHistogram(numbers)
+
+	histPlot(values, "Cauchy Generator no tangent")
+}
+
+func fu(x float64) float64 {
+	if x >= -1.0 && x <= 1.0 {
+		return TwoOverPi / (1.0 + x*x)
+	}
+
+	return 0.0
+}
+
+func getCauchyValuesForHistogram(numbers []float64) plotter.Values {
+
+	var values plotter.Values
+
+	for i := 0; i < N; i++ {
 		// Limiting to values from -4 to 4, otherwise the histogram has too many extremely small and large values and it's impossible to see the distribution.
 		if numbers[i] >= -4.0 && numbers[i] <= 4.0 {
 			values = append(values, numbers[i])
 		}
 	}
 
-	histPlot(values, "Cauchy Generator no tangent")
+	return values
+}
+
+func calculateCauchyStats(numbers []float64) (q1, median, q3, IQR float64) {
+	sort.Float64s(numbers)
+
+	median = numbers[N/2]
+	if N%2 == 0 {
+		median = (median + numbers[N/2-1]) / 2
+	}
+
+	q1 = numbers[N/4]
+	q3 = numbers[(3*N)/4]
+	IQR = q3 - q1
+
+	return q1, median, q3, IQR
 }
 
 func getRandomInRange(min, max float64) float64 {
@@ -122,7 +167,7 @@ func calculateLgcStats(numbers []float64) (mean, stdDev float64) {
 
 	variance := 0.0
 	for _, number := range numbers {
-		variance += math.Pow(float64(number)-mean, 2)
+		variance += math.Pow(number-mean, 2)
 	}
 	variance /= float64(len(numbers))
 	stdDev = math.Sqrt(variance)
@@ -135,13 +180,16 @@ func histPlot(values plotter.Values, title string) {
 
 	p.Title.Text = title
 
-	hist, err := plotter.NewHist(values, values.Len()/1_000)
+	// Taking 1% of values as bins
+	bins := int(float32(values.Len()) * 0.01)
+
+	hist, err := plotter.NewHist(values, bins)
 	if err != nil {
 		panic(err)
 	}
 	p.Add(hist)
 
-	err = p.Save(1920, 1080, filepath.Join("plots", title+".png"))
+	err = p.Save(1440, 720, filepath.Join("plots", title+".png"))
 	if err != nil {
 		panic(err)
 	}
