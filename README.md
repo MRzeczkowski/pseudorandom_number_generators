@@ -57,6 +57,8 @@ Calculated statistics for the method using tangent are closer to theoretical val
 
 It's important to mention that the Cauchy distribution has extreme values and the "heavy tails" that this distribution has would cause the histogram to consist of a single high bar. This is because of the limited amount of bins that can be used. Due to this issue the histogram is created only for values in the [-4, 4] range. 
 
+Another important note is that the fast method uses an algorithm from this book "Wieczorkowski R. - Komputerowe generatory liczb losowych", specifically "Algorytm 3.37" on pages 75-76. This algorithm is used to generate numbers in range [-1, 1] for default values of `X0` and `Gamma` - 0 and 1 respectively. Because it does not generate tails I've added some code inspired by [this blog post](https://devzine.pl/2011/02/21/generator-liczb-pseudolosowych-cz-3-rozklad-cauchyego/). Maybe there is a more performant way of doing this but I didn't find one online. I modify the output for the algorithm and `X0` and `Gamma` work with it correctly.
+
 Below are histograms for the tangent method and alternative methods.
 
 ![](plots/Simple%20Cauchy%20Generator.png)

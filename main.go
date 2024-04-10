@@ -78,18 +78,18 @@ func generateCauchySimple() {
 	histPlot(values, "Simple Cauchy Generator")
 }
 
-const TwoOverPi = 2.0 / math.Pi
-
 func generateCauchyFast() {
 
 	start := time.Now()
 	numbers := make([]float64, N)
-	const twoOverPiMinusHalf = TwoOverPi - 0.5
+
+	const FourOverPi = 4.0 / math.Pi // ~1,273239544735163
+
 	for i := 0; i < N; i++ {
 		x := getRandomInRange(-1, 1)
 		y := getRandomInRange(0, 1)
 
-		if y > 2.0*(fu(x)-twoOverPiMinusHalf) {
+		if (y+FourOverPi-1)*(1+x*x) > FourOverPi {
 			x = getRandomInRange(-1, 1)
 		}
 
@@ -113,14 +113,6 @@ func generateCauchyFast() {
 	values := getCauchyValuesForHistogram(numbers)
 
 	histPlot(values, "Fast Cauchy Generator")
-}
-
-func fu(x float64) float64 {
-	if x >= -1.0 && x <= 1.0 {
-		return TwoOverPi / (1.0 + x*x)
-	}
-
-	return 0.0
 }
 
 func getCauchyValuesForHistogram(numbers []float64) plotter.Values {
