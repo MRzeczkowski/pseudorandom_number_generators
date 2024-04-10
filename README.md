@@ -30,7 +30,7 @@ Theoretically the histogram should be flatter but of course the generator is not
 
 ## Cauchy
 
-To generate numbers in the Cauchy distribution two algorithms have been used: classic approach using tangent and an alternative that leverages the probability density function - tangent is not needed here.
+To generate numbers in the Cauchy distribution two algorithms have been used: simple approach using tangent and an alternative that leverages the probability density function - tangent is not needed here.
 
 `X0` and `Gamma` parameters of the distribution are set to 0 and 1 respectively - they can be adjusted in the code.
 
@@ -59,8 +59,8 @@ It's important to mention that the Cauchy distribution has extreme values and th
 
 Below are histograms for the tangent method and alternative methods.
 
-![](plots/Cauchy%20Generator.png)
+![](plots/Simple%20Cauchy%20Generator.png)
 
-![](plots/Cauchy%20Generator%20no%20tangent.png)
+![](plots/Fast%20Cauchy%20Generator.png)
 
 Histograms are similar to each other and close to the actual distribution but of course they are not perfect.

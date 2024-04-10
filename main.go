@@ -27,8 +27,8 @@ func main() {
 	fmt.Printf("Generating %d numbers\n\n", N)
 
 	generateLgc()
-	generateCauchy()
-	generateCauchyNoTangent()
+	generateCauchySimple()
+	generateCauchyFast()
 }
 
 func generateLgc() {
@@ -60,7 +60,7 @@ func lcg(seed uint64) func() uint64 {
 
 var lgcGenerator = lcg(Seed)
 
-func generateCauchy() {
+func generateCauchySimple() {
 
 	start := time.Now()
 	numbers := make([]float64, N)
@@ -71,16 +71,16 @@ func generateCauchy() {
 	fmt.Printf("Generating Cauchy numbers took %s\n", elapsed)
 
 	q1, median, q3, IQR := calculateCauchyStats(numbers)
-	fmt.Printf("Cauchy stats:\n\t1st quartile: %f\n\tMedian: %f\n\t3rd quartile: %f\n\tInterquartile range: %f\n\n", q1, median, q3, IQR)
+	fmt.Printf("Simple Cauchy generator stats:\n\t1st quartile: %f\n\tMedian: %f\n\t3rd quartile: %f\n\tInterquartile range: %f\n\n", q1, median, q3, IQR)
 
 	values := getCauchyValuesForHistogram(numbers)
 
-	histPlot(values, "Cauchy Generator")
+	histPlot(values, "Simple Cauchy Generator")
 }
 
 const TwoOverPi = 2.0 / math.Pi
 
-func generateCauchyNoTangent() {
+func generateCauchyFast() {
 
 	start := time.Now()
 	numbers := make([]float64, N)
@@ -108,11 +108,11 @@ func generateCauchyNoTangent() {
 	fmt.Printf("Generating Cauchy numbers without using tangent took %s\n", elapsed)
 
 	q1, median, q3, IQR := calculateCauchyStats(numbers)
-	fmt.Printf("Cauchy no tangent stats:\n\t1st quartile: %f\n\tMedian: %f\n\t3rd quartile: %f\n\tInterquartile range: %f\n\n", q1, median, q3, IQR)
+	fmt.Printf("Fast Cauchy generator stats:\n\t1st quartile: %f\n\tMedian: %f\n\t3rd quartile: %f\n\tInterquartile range: %f\n\n", q1, median, q3, IQR)
 
 	values := getCauchyValuesForHistogram(numbers)
 
-	histPlot(values, "Cauchy Generator no tangent")
+	histPlot(values, "Fast Cauchy Generator")
 }
 
 func fu(x float64) float64 {
