@@ -1,7 +1,7 @@
 # Pseudorandom number generators
 
 ## Description
-This is simple application to test implementations of random number generators.
+This is a simple application to test implementations of random number generators.
 
 For now it supports LGC, and two ways of generating random numbers in the Cauchy distribution.
 
@@ -30,9 +30,9 @@ Theoretically the histogram should be flatter but of course the generator is not
 
 ## Cauchy
 
-To generate numbers in the Cauchy distribution two algorithms have been used: simple approach using tangent and an alternative that leverages the probability density function - tangent is not needed here.
+To generate numbers in the Cauchy distribution two algorithms have been used: simple approach using tangent and an alternative that leverages the probability density function and some clever maths - tangent is not needed here so it's a bit faster.
 
-`X0` and `Gamma` parameters of the distribution are set to 0 and 1 respectively - they can be adjusted in the code.
+`X0` and `Gamma` parameters of the distribution are by default set to 0 and 1 respectively - they can be adjusted in the code.
 
 Since the Cauchy distribution has no mean and standard deviation the 1st quartile, median, 3rd quartile and interquartile range are calculated. With above mentioned parameters the theoretical values for these statistics should be -1, 0, 1 and 2 respectively.
 
@@ -57,9 +57,9 @@ Calculated statistics for the method using tangent are closer to theoretical val
 
 It's important to mention that the Cauchy distribution has extreme values and the "heavy tails" that this distribution has would cause the histogram to consist of a single high bar. This is because of the limited amount of bins that can be used. Due to this issue the histogram is created only for values in the [-4, 4] range. 
 
-Another important note is that the fast method uses an algorithm from this book "Wieczorkowski R. - Komputerowe generatory liczb losowych", specifically "Algorytm 3.37" on pages 75-76. This algorithm is used to generate numbers in range [-1, 1] for default values of `X0` and `Gamma` - 0 and 1 respectively. Because it does not generate tails I've added some code inspired by [this blog post](https://devzine.pl/2011/02/21/generator-liczb-pseudolosowych-cz-3-rozklad-cauchyego/). Maybe there is a more performant way of doing this but I didn't find one online. I modify the output for the algorithm and `X0` and `Gamma` work with it correctly.
+Another important note is that the fast method uses an algorithm from this book "Wieczorkowski R. - Komputerowe generatory liczb losowych", specifically "Algorytm 3.37" on pages 75-76. This algorithm is used to generate numbers in range [-1, 1] for default values of `X0` and `Gamma`. Because it does not generate tails I've added some code inspired by [this blog post](https://devzine.pl/2011/02/21/generator-liczb-pseudolosowych-cz-3-rozklad-cauchyego/). Maybe there is a more performant way of doing this but I didn't find one online. I modify the output for the algorithm and `X0` and `Gamma` work with it correctly.
 
-Below are histograms for the tangent method and alternative methods.
+Below are histograms for the tangent method and the alternative, faster method.
 
 ![](plots/Simple%20Cauchy%20Generator.png)
 
